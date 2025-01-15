@@ -16,12 +16,6 @@ else
   exit 1
 fi
 
-# Check if Visual Studio environment is set up
-if ! command -v cl &> /dev/null; then
-  echo "ERROR: cl.exe not found"
-  exit 1
-fi
-
 # Check if ninja is installed
 if ! command -v ninja &> /dev/null; then
   curl -LO https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-linux.zip
@@ -86,7 +80,6 @@ if [ -d "build" ]; then
   rm -rf build
 fi
 
-LINK=opengl32.lib
 cmake -G Ninja -S aseprite -B build \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_POLICY_DEFAULT_CMP0074=NEW \

@@ -24,7 +24,9 @@ jobs:
       run: sudo apt-get install -y jq cmake ninja-build
 
     - name: Run build script
-      run: bash ubuntu_build.sh
+      run: |
+        chmod +x build.sh
+        ./ubuntu_build.sh
 
     - name: Archive
       uses: actions/upload-artifact@v4
