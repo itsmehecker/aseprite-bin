@@ -1,0 +1,33 @@
+name: Ubuntu
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: sudo apt-get install -y jq cmake ninja-build
+
+    - name: Run build script
+      run: bash ubuntu_build.sh
+
+    - name: Archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: aseprite
+        path: github
+        if-no-files-found: error
