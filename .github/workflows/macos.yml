@@ -1,0 +1,60 @@
+name: Build Aseprite for macOS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-14-large
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install cmake ninja python
+          brew install llvm
+
+      - name: Set Environment Variables
+        run: |
+          echo "CXX=/opt/homebrew/opt/llvm/bin/clang++" >> $GITHUB_ENV
+          echo "CC=/opt/homebrew/opt/llvm/bin/clang" >> $GITHUB_ENV
+
+      - name: Download and Build Skia
+        run: |
+          git clone https://github.com/aseprite/skia.git
+          cd skia
+          python tools/git-sync-deps
+          mkdir out/Release
+          cd out/Release
+          cmake -G Ninja .. -DSKIA_DIR=../.. -DCMAKE_BUILD_TYPE=Release
+          ninja
+        working-directory: skia
+
+      - name: Build Aseprite
+        run: |
+          mkdir build
+          cd build
+          cmake -G Ninja .. \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSKIA_DIR=$GITHUB_WORKSPACE/skia \
+            -DSKIA_OUT_DIR=$GITHUB_WORKSPACE/skia/out/Release \
+            -DUSE_SKIA=ON \
+            -DUSE_HARFBUZZ=ON \
+            -DCMAKE_C_COMPILER=$CC \
+            -DCMAKE_CXX_COMPILER=$CXX
+          ninja aseprite
+        working-directory: .
+
+      - name: Upload Aseprite Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: aseprite-macos-x64
+          path: build/bin/aseprite
